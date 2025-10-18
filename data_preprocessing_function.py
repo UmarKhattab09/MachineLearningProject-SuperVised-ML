@@ -14,6 +14,15 @@ def remove_rows_with_missing_data(df, columns):
         df = df.dropna(subset=columns)
         return df
 
+def convert_data_types(df, column_type_dict):
+    for column, dtype in column_type_dict.items():
+        if column in df.columns:
+            try:
+                df[column] = df[column].astype(dtype)
+            except Exception as e:
+                st.warning(f"Could not convert column {column} to {dtype}: {e}")
+    return df
+
 # Create a function to fill missing data with mean, median, or mode (for numerical columns)
 def fill_missing_data(df, columns, method):
     for column in columns:

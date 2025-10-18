@@ -10,9 +10,13 @@ import data_analysis_functions as function
 import data_preprocessing_function as preprocessing_function
 import home_page
 import base64
+import streamlit_authenticator as stauth
 
 
+import streamlit as st
 
+if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
+    st.switch_page("loginsystem.py")  # Redirect back if not authenticated
 # # page config sets the text and icon that we see on the tab
 st.set_page_config(page_icon="✨", page_title="AutoEDA")
 
@@ -198,6 +202,25 @@ else:
                 st.success("Selected Columns Removed Sucessfully")
                 
         st.dataframe(st.session_state.new_df)
+
+        # CONVERT DATA TYPES
+        st.subheader("Convert Data Types of Columns")
+        column_type_dict = {}
+        columns_for_type_conversion = st.multiselect("Select Columns to Convert Data Types", options=
+            st.session_state.new_df.columns)
+        if columns_for_type_conversion:
+            for column in columns_for_type_conversion:
+                new_dtype = st.selectbox(f"Select new data type for column '{column}'", 
+                    options=['int', 'float', 'str', 'category', 'bool'], key=f"dtype_{column}")
+                column_type_dict[column] = new_dtype
+            if st.button("Convert Data Types"):
+                st.session_state.new_df = preprocessing_function.convert_data_types(st.session_state.new_df, column_type_dict)
+                st.success("Data Types Converted Successfully")
+            else:
+                st.info("Please select columns and data types, then click 'Convert Data Types'")
+
+        st.dataframe(st.session_state.new_df)
+
        
 
        # Handle missing values in the dataset
