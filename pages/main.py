@@ -369,21 +369,18 @@ else:
         st.subheader("This feature is coming soon. Stay tuned!")
         st.info("We're working hard to bring you this feature. Please check back later.")
 
-        model = st.selectbox("Select Model Type", ["Linear Regression", "Logistic Regression", "Random Forest Classifier", "Random Forest Regressor"])
+        model = st.selectbox("Select Model Type", ["regression", "classification"])
+    
         target_column = st.selectbox(label="Enter the Target Column Name",options=st.session_state.new_df.columns)
         if st.button("Train Model"):
             if target_column in st.session_state.new_df.columns:
-                if model == "Linear Regression":
-                    from machinelearningfunctions import linear_regression
-                    linear_regression(st.session_state.new_df, target_column)
-                elif model == "Logistic Regression":
+                if model == "regression":
+                    from machinelearningfunctions import regression_model
+                    regression_model(st.session_state.new_df, target_column)
+                elif model == "classification":
                     from machinelearningfunctions import logistic_regression
-                    logistic_regression(st.session_state.new_df, target_column)
-                elif model == "Random Forest Classifier":
-                    from machinelearningfunctions import random_forest_classifier
-                    random_forest_classifier(st.session_state.new_df, target_column)
-                elif model == "Random Forest Regressor":
-                    from machinelearningfunctions import random_forest_regressor
-                    random_forest_regressor(st.session_state.new_df, target_column)
+                    st.write("Classification will be done soon.")
+                    # logistic_regression(st.session_state.new_df, target_column)
+                
             else:
                 st.error("The specified target column does not exist in the dataset. Please enter a valid column name.")

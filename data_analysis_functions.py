@@ -12,7 +12,7 @@ import plotly.express as px
 
 # Function to load the csv data to a dataframe
 def load_data(file):
-    return pd.read_csv(file)
+    return pd.read_csv(file,index_col=None)
 
 # Function to find categorical and numerical columns/variables in dataset
 def categorical_numerical(df):
