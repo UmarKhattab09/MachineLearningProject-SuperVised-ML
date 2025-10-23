@@ -142,11 +142,11 @@ def neural_network(df, target_column, n_hidden_layers=2, neurons_per_layer=64, l
         X = df.drop(columns=[target_column]).values
         y = df[target_column].values.reshape(-1, 1)
 
-        # Feature scaling
-        scaler_X = StandardScaler()
-        scaler_y = StandardScaler()
-        X = scaler_X.fit_transform(X)
-        y = scaler_y.fit_transform(y)
+        # # Feature scaling
+        # scaler_X = StandardScaler()
+        # scaler_y = StandardScaler()
+        # X = scaler_X.fit_transform(X)
+        # y = scaler_y.fit_transform(y)
 
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
@@ -218,10 +218,76 @@ def neural_network(df, target_column, n_hidden_layers=2, neurons_per_layer=64, l
         st.error(f"An error occurred while training the neural network model: {e}")
         return None
 
+def neural_network_classifier(df, target_column, n_hidden_layers=2, neurons_per_layer=64, learning_rate=0.001, epochs=100, batch_size=32):
+    try:
+        # -------------------
+        # 1. Prepare data
+        # -------------------
+        X = df.drop(columns=[target_column]).values
+        y = df[target_column].values
 
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
+        X_train = torch.tensor(X_train, dtype=torch.float32)
+        X_test = torch.tensor(X_test, dtype=torch.float32)
+        y_train = torch.tensor(y_train, dtype=torch.long)
+        y_test = torch.tensor(y_test, dtype=torch.long)
 
+        # -------------------
+        # 2. Build PyTorch Model dynamically
+        # -------------------
+        layers_list = []
+        input_size = X_train.shape[1]
 
+        for i in range(n_hidden_layers):
+            layers_list.append(nn.Linear(input_size, neurons_per_layer))
+            layers_list.append(nn.ReLU())
+            input_size = neurons_per_layer
+
+        # Output layer
+        layers_list.append(nn.Linear(input_size, len(torch.unique(y_train))))
+        layers_list.append(nn.Softmax(dim=1))
+
+        model = nn.Sequential(*layers_list)
+
+        # Loss and optimizer
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+        # -------------------
+        # 3. Training Loop
+        # -------------------
+        dataset = torch.utils.data.TensorDataset(X_train, y_train)
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        for epoch in range(epochs):
+            model.train()
+            for batch_X, batch_y in dataloader:
+                optimizer.zero_grad()
+                outputs = model(batch_X)
+                loss = criterion(outputs, batch_y)
+                loss.backward()
+                optimizer.step()
+            if (epoch + 1) % 10 == 0:
+                st.write(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
+            print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
+        # -------------------
+        # 4. Evaluate on test set
+        # -------------------
+        model.eval()
+        with torch.no_grad():
+            y_pred = model(X_test)
+            _, predicted = torch.max(y_pred, 1)
+            accuracy = (predicted == y_test).sum().item() / y_test.size(0)
+        st.write("### Neural Network Classifier")
+        st.write(f"Accuracy on Test Set: {accuracy:.4f}")
+        return model
+    except Exception as e:
+        st.error(f"An error occurred while training the neural network classifier: {e}")
+        return None
+    
 
 
 

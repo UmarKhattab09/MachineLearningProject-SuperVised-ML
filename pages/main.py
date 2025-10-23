@@ -377,66 +377,92 @@ else:
             st.markdown(f'<a href="{href}" download="preprocessed_data.csv"><button>Download Preprocessed Data</button></a>', unsafe_allow_html=True)
         else:
             st.warning("No preprocessed data available to download.")
+if selected == 'Machine Learning':
+    num_columns, cat_columns, bool_columns = function.categorical_numerical(st.session_state.new_df)
 
+    checked = st.checkbox("Drop Non-Numeric Columns Before Training Model")
+    if checked:
+        st.session_state.new_df = st.session_state.new_df.drop(columns=cat_columns)
+        st.write("Non-numeric columns dropped:")
+        st.write(cat_columns)
+        st.success("Non-Numeric Columns Dropped Successfully")
+    else:
+        st.info("Proceeding without dropping non-numeric columns may lead to errors during model training.")
 
-    if selected == 'Machine Learning':
-        
-        # st.subheader("This feature is coming soon. Stay tuned!")
-        # st.info("We're working hard to bring you this feature. Please check back later.")
-        
-        num_columns, cat_columns, bool_columns = function.categorical_numerical(st.session_state.new_df)
+    if bool_columns:
+        st.write("Note: The dataset contains boolean columns. They will be treated as numeric (0 and 1) during model training.")
+        boolfix = st.checkbox("Convert Boolean Columns to Numeric (0 and 1)")
+        if boolfix:
+            for col in bool_columns:
+                st.session_state.new_df[col] = st.session_state.new_df[col].astype(int)
+            st.success("Boolean Columns Converted to Numeric Successfully")
 
-        checked = st.checkbox("Drop Non-Numeric Columns Before Training Model")
-        if checked:
-            # numerical, categorical = function.categorical_numerical(st.session_state.new_df)
-        
-            st.session_state.new_df = st.session_state.new_df.drop(columns=cat_columns)
-            st.write("Non-numeric columns dropped:")
-            st.write(cat_columns)
-            st.success("Non-Numeric Columns Dropped Successfully")
+    model = st.selectbox(
+        "Select Model Type", 
+        ["regression", "classification", "neuralnetwork for regression", "neuralnetwork for classification"]
+    )
 
+    # Show hyperparameters ONLY for neural network models
+    show_nn = model in ["neuralnetwork for regression", "neuralnetwork for classification"]
+    if show_nn:
+        st.write("### Neural Network Hyperparameters (Adjust Before Training)")
+        n_hidden_layers = st.number_input(
+            "Number of Hidden Layers", min_value=1, max_value=5, value=2
+        )
+        neurons_per_layer = st.number_input(
+            "Neurons per Hidden Layer", min_value=1, max_value=512, value=64
+        )
+        learning_rate = st.number_input(
+            "Learning Rate", min_value=0.0001, max_value=1.0, value=0.001, step=0.0001, format="%.4f"
+        )
+        epochs = st.number_input(
+            "Epochs", min_value=10, max_value=500, value=50, step=10
+        )
+        batch_size = st.number_input(
+            "Batch Size", min_value=1, max_value=256, value=32
+        )
+    else:
+        # Default values; not shown to user
+        n_hidden_layers = None
+        neurons_per_layer = None
+        learning_rate = None
+        epochs = None
+        batch_size = None
+
+    target_column = st.selectbox(
+        label="Enter the Target Column Name", 
+        options=st.session_state.new_df.columns
+    )
+
+    if st.button("Train Model"):
+        if target_column in st.session_state.new_df.columns:
+            if model == "regression":
+                from machinelearningfunctions import regression_model
+                regression_model(st.session_state.new_df, target_column)
+            elif model == "classification":
+                from machinelearningfunctions import classification_model
+                classification_model(st.session_state.new_df, target_column)
+            elif model == 'neuralnetwork for regression':
+                from machinelearningfunctions import neural_network
+                neural_network(
+                    st.session_state.new_df, 
+                    target_column,
+                    n_hidden_layers=n_hidden_layers,
+                    neurons_per_layer=neurons_per_layer,
+                    learning_rate=learning_rate,
+                    epochs=epochs,
+                    batch_size=batch_size
+                )
+            elif model == 'neuralnetwork for classification':
+                from machinelearningfunctions import neural_network_classifier
+                neural_network_classifier(
+                    st.session_state.new_df, 
+                    target_column,
+                    n_hidden_layers=n_hidden_layers,
+                    neurons_per_layer=neurons_per_layer,
+                    learning_rate=learning_rate,
+                    epochs=epochs,
+                    batch_size=batch_size
+                )
         else:
-            st.info("Proceeding without dropping non-numeric columns may lead to errors during model training.")
-
-        if bool_columns:
-            st.write("Note: The dataset contains boolean columns. They will be treated as numeric (0 and 1) during model training.")
-            boolfix = st.checkbox("Convert Boolean Columns to Numeric (0 and 1)")
-            if boolfix:
-                for col in bool_columns:
-                    st.session_state.new_df[col] = st.session_state.new_df[col].astype(int)
-                st.success("Boolean Columns Converted to Numeric Successfully")
-        model = st.selectbox("Select Model Type", ["regression", "classification","neuralnetwork for regression"])
-    
-        target_column = st.selectbox(label="Enter the Target Column Name",options=st.session_state.new_df.columns)
-        if st.button("Train Model"):
-            if target_column in st.session_state.new_df.columns:
-                if model == "regression":
-                    from machinelearningfunctions import regression_model
-                    regression_model(st.session_state.new_df, target_column)
-                elif model == "classification":
-                    from machinelearningfunctions import classification_model
-                    # st.write("Classification will be done soon.")
-                    classification_model(st.session_state.new_df, target_column)
-
-                    # logistic_regression(st.session_state.new_df, target_column)
-                elif model == 'neuralnetwork for regression':
-                        from machinelearningfunctions import neural_network
-
-                        st.write("### Neural Network Hyperparameters")
-                        n_hidden_layers = st.number_input("Number of Hidden Layers", min_value=1, max_value=5, value=2)
-                        neurons_per_layer = st.number_input("Neurons per Hidden Layer", min_value=1, max_value=512, value=64)
-                        learning_rate = st.number_input("Learning Rate", min_value=0.0001, max_value=1.0, value=0.001, step=0.0001, format="%.4f")
-                        epochs = st.number_input("Epochs", min_value=10, max_value=500, value=50, step=10)
-                        batch_size = st.number_input("Batch Size", min_value=1, max_value=256, value=32)
-
-                        neural_network(
-                            st.session_state.new_df, 
-                            target_column,
-                            n_hidden_layers=n_hidden_layers,
-                            neurons_per_layer=neurons_per_layer,
-                            learning_rate=learning_rate,
-                            epochs=epochs,
-                            batch_size=batch_size
-                        )
-                else:
-                    st.error("The specified target column does not exist in the dataset. Please enter a valid column name.")
+            st.error("The specified target column does not exist in the dataset. Please enter a valid column name.")
