@@ -11,4 +11,6 @@ streamlit_extras
 streamlit-authenticator
 deta==1.1.0
 xgboost
-Adaboost
+openpyxl
+supabase
+python-dotenv

@@ -34,7 +34,7 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 
 
 # Create a Streamlit sidebar
-st.sidebar.title("AutoEDA: Automated Exploratory Data Analysis and Processing")
+# st.sidebar.title("AutoEDA: Automated Exploratory Data Analysis and Processing")
 
 # Set custom CSS
 custom_css = home_page.custom_css
@@ -47,7 +47,7 @@ st.title("Welcome to AutoEDA")
 
 selected = option_menu(
     menu_title=None,
-    options=['Home', 'Data Exploration', 'Data Preprocessing','Machine Learning (Coming Soon)'],
+    options=['Home', 'Data Exploration', 'Data Preprocessing','Machine Learning'],
     icons=['house-heart', 'bar-chart-fill', 'hammer'],
     orientation='horizontal'
 )
@@ -57,8 +57,8 @@ if selected == 'Home':
 
 
 # Create a button in the sidebar to upload CSV
-uploaded_file = st.sidebar.file_uploader("Upload Your CSV File Here", type=["csv","xls"])
-use_example_data = st.sidebar.checkbox("Use Example Titanic Dataset", value=False)
+uploaded_file = st.sidebar.file_uploader("Upload Your CSV File Here", type=["csv","xls","xlsx","txt"])
+# use_example_data = st.sidebar.checkbox("Use Example Titanic Dataset", value=False)
 
 # ADDING LINKS TO MY PROFILES 
 st.sidebar.write("#")
@@ -92,11 +92,26 @@ col2.markdown(f'<a href="https://github.com/UmarKhattab09"><img src="data:image/
 
 if uploaded_file:
     df = function.load_data(uploaded_file)
+    df.drop(df.columns[df.columns.str.contains('^Unnamed')], axis=1, inplace=True)
 
+    current_file_name = uploaded_file.name
 
-    # get a copy of original df from the session state or create a new one. this is for preprocessing purposes
-    if 'new_df' not in st.session_state:
+    # Check if a different file is uploaded
+    if st.session_state.get("current_file_name") != current_file_name:
+        # Update stored file name
+        st.session_state.current_file_name = current_file_name
+        # Reset new_df with the new file
         st.session_state.new_df = df.copy()
+        st.success(f"✅ New file '{current_file_name}' uploaded and data refreshed.")
+    else:
+        # If same file, keep using the one in session state
+        df = st.session_state.get("new_df", df)
+
+    # Make sure df always refers to the current working copy
+    st.session_state.new_df = st.session_state.get("new_df", df)
+
+    # st.write("### Current DataFrame:")
+    # st.dataframe(st.session_state.new_df.head())
 
     
 
@@ -127,45 +142,45 @@ else:
     if selected=='Data Exploration':
 
         tab1, tab2 = st.tabs(['📊 Dataset Overview :clipboard', "🔎 Data Exploration and Visualization"])
-        num_columns, cat_columns = function.categorical_numerical(df)
+        num_columns, cat_columns, bool_columns = function.categorical_numerical(st.session_state.new_df)
         
         
         with tab1: # DATASET OVERVIEW TAB
             st.subheader("1. Dataset Preview")
             st.markdown("This section provides an overview of your dataset. You can select the number of rows to display and view the dataset's structure.")
-            function.display_dataset_overview(df,cat_columns,num_columns)
+            function.display_dataset_overview(st.session_state.new_df,cat_columns,num_columns,bool_columns)
 
 
             st.subheader("3. Missing Values")
-            function.display_missing_values(df)
+            function.display_missing_values(st.session_state.new_df)
             
             st.subheader("4. Data Statistics and Visualization")
-            function.display_statistics_visualization(df,cat_columns,num_columns)
+            function.display_statistics_visualization(st.session_state.new_df,cat_columns,num_columns)
 
             st.subheader("5. Data Types")
-            function.display_data_types(df)
+            function.display_data_types(st.session_state.new_df)
 
             st.subheader("Search for a specific column or datatype")
-            function.search_column(df)
+            function.search_column(st.session_state.new_df)
 
         with tab2: 
 
-            function.display_individual_feature_distribution(df,num_columns)
+            function.display_individual_feature_distribution(st.session_state.new_df,num_columns)
 
             st.subheader("Scatter Plot")
-            function.display_scatter_plot_of_two_numeric_features(df,num_columns)
+            function.display_scatter_plot_of_two_numeric_features(st.session_state.new_df,num_columns)
 
 
             if len(cat_columns)!=0:
                 st.subheader("Categorical Variable Analysis")
-                function.categorical_variable_analysis(df,cat_columns)
+                function.categorical_variable_analysis(st.session_state.new_df,cat_columns)
             else:
                 st.info("The dataset does not have any categorical columns")
 
 
             st.subheader("Feature Exploration of Numerical Variables")
             if len(num_columns)!=0:
-                function.feature_exploration_numerical_variables(df,num_columns)
+                function.feature_exploration_numerical_variables(st.session_state.new_df,num_columns)
 
             else:
                 st.warning("The dataset does not contain any numerical variables")
@@ -173,7 +188,7 @@ else:
             # Create a bar graph to get relationship between categorical variable and numerical variable
             st.subheader("Categorical and Numerical Variable Analysis")
             if len(num_columns)!=0 and len(cat_columns)!=0:
-                function.categorical_numerical_variable_analysis(df,cat_columns,num_columns)
+                function.categorical_numerical_variable_analysis(st.session_state.new_df,cat_columns,num_columns)
                 
             else:
                 st.warning("The dataset does not have any numerical variables. Hence Cannot Perform Categorical and Numerical Variable Analysis")
@@ -364,12 +379,33 @@ else:
             st.warning("No preprocessed data available to download.")
 
 
-    if selected == 'Machine Learning (Coming Soon)':
+    if selected == 'Machine Learning':
         
-        st.subheader("This feature is coming soon. Stay tuned!")
-        st.info("We're working hard to bring you this feature. Please check back later.")
+        # st.subheader("This feature is coming soon. Stay tuned!")
+        # st.info("We're working hard to bring you this feature. Please check back later.")
+        
+        num_columns, cat_columns, bool_columns = function.categorical_numerical(st.session_state.new_df)
 
-        model = st.selectbox("Select Model Type", ["regression", "classification"])
+        checked = st.checkbox("Drop Non-Numeric Columns Before Training Model")
+        if checked:
+            # numerical, categorical = function.categorical_numerical(st.session_state.new_df)
+        
+            st.session_state.new_df = st.session_state.new_df.drop(columns=cat_columns)
+            st.write("Non-numeric columns dropped:")
+            st.write(cat_columns)
+            st.success("Non-Numeric Columns Dropped Successfully")
+
+        else:
+            st.info("Proceeding without dropping non-numeric columns may lead to errors during model training.")
+
+        if bool_columns:
+            st.write("Note: The dataset contains boolean columns. They will be treated as numeric (0 and 1) during model training.")
+            boolfix = st.checkbox("Convert Boolean Columns to Numeric (0 and 1)")
+            if boolfix:
+                for col in bool_columns:
+                    st.session_state.new_df[col] = st.session_state.new_df[col].astype(int)
+                st.success("Boolean Columns Converted to Numeric Successfully")
+        model = st.selectbox("Select Model Type", ["regression", "classification","neuralnetwork for regression"])
     
         target_column = st.selectbox(label="Enter the Target Column Name",options=st.session_state.new_df.columns)
         if st.button("Train Model"):
@@ -378,9 +414,29 @@ else:
                     from machinelearningfunctions import regression_model
                     regression_model(st.session_state.new_df, target_column)
                 elif model == "classification":
-                    from machinelearningfunctions import logistic_regression
-                    st.write("Classification will be done soon.")
+                    from machinelearningfunctions import classification_model
+                    # st.write("Classification will be done soon.")
+                    classification_model(st.session_state.new_df, target_column)
+
                     # logistic_regression(st.session_state.new_df, target_column)
-                
-            else:
-                st.error("The specified target column does not exist in the dataset. Please enter a valid column name.")
+                elif model == 'neuralnetwork for regression':
+                        from machinelearningfunctions import neural_network
+
+                        st.write("### Neural Network Hyperparameters")
+                        n_hidden_layers = st.number_input("Number of Hidden Layers", min_value=1, max_value=5, value=2)
+                        neurons_per_layer = st.number_input("Neurons per Hidden Layer", min_value=1, max_value=512, value=64)
+                        learning_rate = st.number_input("Learning Rate", min_value=0.0001, max_value=1.0, value=0.001, step=0.0001, format="%.4f")
+                        epochs = st.number_input("Epochs", min_value=10, max_value=500, value=50, step=10)
+                        batch_size = st.number_input("Batch Size", min_value=1, max_value=256, value=32)
+
+                        neural_network(
+                            st.session_state.new_df, 
+                            target_column,
+                            n_hidden_layers=n_hidden_layers,
+                            neurons_per_layer=neurons_per_layer,
+                            learning_rate=learning_rate,
+                            epochs=epochs,
+                            batch_size=batch_size
+                        )
+                else:
+                    st.error("The specified target column does not exist in the dataset. Please enter a valid column name.")

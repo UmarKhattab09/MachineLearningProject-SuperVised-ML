@@ -12,23 +12,41 @@ import plotly.express as px
 
 # Function to load the csv data to a dataframe
 def load_data(file):
-    return pd.read_csv(file,index_col=None)
+    if file.name.endswith('.xls') or file.name.endswith('.xlsx'):
+        return pd.read_excel(file,index_col=0)
+    elif file.name.endswith('.csv'):
+        return pd.read_csv(file,index_col=0)
+    elif file.name.endswith('.txt'):
+        return pd.read_fwf(file,index_col=0)    
+    else:
+        st.error("Unsupported file format. Please upload a CSV, Excel, or TXT file.")
+        return None
+    
 
 # Function to find categorical and numerical columns/variables in dataset
 def categorical_numerical(df):
-    num_columns,cat_columns = [],[]
-    for col in df.columns:
-        if len(df[col].unique()) <= 30 or df[col].dtype== np.object_:
-            cat_columns.append(col.strip())
+    num_columns,cat_columns, bool_columns= [],[],[]
+    for col in df.select_dtypes(include=[np.number]).columns:
+        num_columns.append(col.strip())
+    for col in df.select_dtypes(include=['object','category']).columns:
+        cat_columns.append(col.strip())
+    for col in df.select_dtypes(include=['bool']).columns:
+        bool_columns.append(col.strip())
+    return num_columns,cat_columns,bool_columns
 
-        else:
-            num_columns.append(col.strip())
+    # for col in df.columns:
+    #     if len(df[col].unique()) <= 30 or df[col].dtype== np.object_:
+    #         cat_columns.append(col.strip())
 
-    return num_columns,cat_columns
+    #     else:
+    #         num_columns.append(col.strip())
+
+    # return num_columns,cat_columns
 
 
 # Function to display dataset overview
-def display_dataset_overview(df,cat_columns,num_columns):
+def display_dataset_overview(df,cat_columns,num_columns,bool_columns):
+
     
     display_rows = st.slider("Display Rows", 1, len(df), len(df) if len(df) < 20 else 20)
 
@@ -42,7 +60,8 @@ def display_dataset_overview(df,cat_columns,num_columns):
     st.write(cat_columns)
     st.write(f"**Numerical Columns:** {len(num_columns)}")
     st.write(num_columns)
-    
+    st.write("**Boolean Columns:** ", {len(bool_columns)})
+    st.write(bool_columns)
 
 # Function to find the missing values in the dataset
 def display_missing_values(df):
