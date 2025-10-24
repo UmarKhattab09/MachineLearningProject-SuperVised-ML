@@ -401,7 +401,26 @@ if selected == 'Machine Learning':
         "Select Model Type", 
         ["regression", "classification", "neuralnetwork for regression", "neuralnetwork for classification"]
     )
-
+    #Show hyperparameters only for regression models
+    show_regression = model in ["regression"]
+    if show_regression:
+        st.write("### Regression Model Hyperparameters (Adjust Before Training)")
+        test_size = st.slider("Test Size (as a fraction)", min_value=0.1, max_value=0.5, value=0.2, step=0.05)
+        random_state = st.number_input("Random State (for reproducibility)", min_value=0, max_value=1000, value=42)
+    else:
+        # Default values; not shown to user
+        test_size = 0.2
+        random_state = 42
+    # Show hyperparameters ONLY for classification models
+    show_classification = model in ["classification"]
+    if show_classification:
+        st.write("### Classification Model Hyperparameters (Adjust Before Training)")
+        test_size = st.slider("Test Size (as a fraction)", min_value=0.1, max_value=0.5, value=0.2, step=0.05)
+        random_state = st.number_input("Random State (for reproducibility)", min_value=0, max_value=1000, value=42)
+    else:
+        # Default values; not shown to user
+        test_size = 0.2
+        random_state = 42
     # Show hyperparameters ONLY for neural network models
     show_nn = model in ["neuralnetwork for regression", "neuralnetwork for classification"]
     if show_nn:
