@@ -95,7 +95,7 @@ if uploaded_file:
     df.drop(df.columns[df.columns.str.contains('^Unnamed')], axis=1, inplace=True)
 
     current_file_name = uploaded_file.name
-
+    revertdf = df.copy()
     # Check if a different file is uploaded
     if st.session_state.get("current_file_name") != current_file_name:
         # Update stored file name
@@ -117,13 +117,13 @@ if uploaded_file:
 
 # Create a checkbox in the sidebar to choose between the example dataset and uploaded dataset
 
-elif use_example_data:
-    # Load the example dataset
-    df = function.load_data(file="example_dataset/titanic.csv")
+# elif use_example_data:
+#     # Load the example dataset
+#     df = function.load_data(file="./example_dataset/titanic.csv")
 
-    # Set st.session_state.new_df to the example dataset for data preprocessing
-    if 'new_df' not in st.session_state:
-        st.session_state.new_df = df
+#     # Set st.session_state.new_df to the example dataset for data preprocessing
+#     if 'new_df' not in st.session_state:
+#         st.session_state.new_df = df
    
 
 
@@ -133,7 +133,7 @@ elif use_example_data:
 
 
 # Display the dataset preview or any other content here
-if uploaded_file is None and selected!='Home' and not use_example_data:
+if uploaded_file is None and selected!='Home' :
     # st.subheader("Welcome to DataExplora!")
     st.markdown("#### Use the sidebar to upload a CSV file or use the provided example dataset and explore your data.")
     
@@ -205,7 +205,7 @@ else:
         revert = st.button("Revert to Original Dataset",key="revert_button")
 
         if revert:
-            st.session_state.new_df = df.copy()
+            st.session_state.new_df = revertdf.copy()
 
         # REMOVING UNWANTED COLUMNS
         st.subheader("Remove Unwanted Columns")
@@ -377,6 +377,9 @@ else:
             st.markdown(f'<a href="{href}" download="preprocessed_data.csv"><button>Download Preprocessed Data</button></a>', unsafe_allow_html=True)
         else:
             st.warning("No preprocessed data available to download.")
+
+
+
 if selected == 'Machine Learning':
     num_columns, cat_columns, bool_columns = function.categorical_numerical(st.session_state.new_df)
 
@@ -403,10 +406,55 @@ if selected == 'Machine Learning':
     )
     #Show hyperparameters only for regression models
     show_regression = model in ["regression"]
+    
     if show_regression:
+        
         st.write("### Regression Model Hyperparameters (Adjust Before Training)")
         test_size = st.slider("Test Size (as a fraction)", min_value=0.1, max_value=0.5, value=0.2, step=0.05)
         random_state = st.number_input("Random State (for reproducibility)", min_value=0, max_value=1000, value=42)
+
+        from machinelearningfunctions import regression
+        hyperparams = {}
+        selected_model_name = st.selectbox("Select Regression Model", regression.keys())
+        st.write(f"You have selected: {selected_model_name} for hyperparameter tuning.")
+        #LINEAR REGRESSION HYPERPARAMETERS
+        if selected_model_name == "Linear Regression":
+            st.info("Linear Regression has no hyperparameters to tune.")
+        # DECISION TREE REGRESSOR HYPERPARAMETERS
+        elif selected_model_name == "Decision Tree Regressor":
+            # max_depth = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
+            # min_samples_split = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
+            hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
+
+        # RANDOM FOREST REGRESSOR HYPERPARAMETERS
+        elif selected_model_name == "Random Forest Regressor":
+            # n_estimators = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            # max_depth = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
+            # min_samples_split = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1
+, max_value=100, value=10)
+            hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
+
+        # rIDGE REGRESSOR HYPERPARAMETERS
+        elif selected_model_name == "Ridge Regression":
+            # alpha = st.number_input("Alpha", min_value=0.0, max_value=100.0, value=1.0)
+            hyperparams['alpha'] = st.number_input("Alpha", min_value=0.0, max_value=100.0, value=1.0)
+        # LASSO REGRESSOR HYPERPARAMETERS
+        elif selected_model_name == "Lasso Regression":
+            # alpha = st.number_input("Alpha", min_value=0.0, max_value=100.0, value=1.0)
+            hyperparams['alpha'] = st.number_input("Alpha", min_value=0.0, max_value=100.0, value=1.0)
+
+        #XGBOOST REGRESSOR HYPERPARAMETERS
+        elif selected_model_name == "XGBoost Regressor":
+            # n_estimators = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            # learning_rate = st.number_input("Learning Rate", min_value=0.01, max_value=1.0, value=0.1)
+            # max_depth = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            hyperparams['learning_rate'] = st.number_input("Learning Rate", min_value=0.01, max_value=1.0, value=0.1)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
+
     else:
         # Default values; not shown to user
         test_size = 0.2
@@ -417,29 +465,74 @@ if selected == 'Machine Learning':
         st.write("### Classification Model Hyperparameters (Adjust Before Training)")
         test_size = st.slider("Test Size (as a fraction)", min_value=0.1, max_value=0.5, value=0.2, step=0.05)
         random_state = st.number_input("Random State (for reproducibility)", min_value=0, max_value=1000, value=42)
+        from machinelearningfunctions import classification_models
+        hyperparams = {}
+        selected_model_name = st.selectbox("Select Classification Model", classification_models.keys())
+        st.write(f"You have selected: {selected_model_name} for hyperparameter tuning.")
+        #LOGISTIC REGRESSION HYPERPARAMETERS
+        if selected_model_name == "Logistic Regression":
+            st.info("Logistic Regression has no hyperparameters to tune.")
+        # DECISION TREE CLASSIFIER HYPERPARAMETERS
+        elif selected_model_name == "Decision Tree Classifier":
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=2)
+            hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
+        # RANDOM FOREST CLASSIFIER HYPERPARAMETERS
+        elif selected_model_name == "Random Forest Classifier":
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=2)
+            hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
+        #XGBOOST CLASSIFIER HYPERPARAMETERS
+        elif selected_model_name == "XGBoost Classifier":
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=20)
+            hyperparams['learning_rate'] = st.number_input("Learning Rate", min_value=0.01, max_value=1.0, value=0.1)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=2)
+        elif selected_model_name == "AdaBoost Classifier":
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=20)
+            hyperparams['learning_rate'] = st.number_input("Learning Rate", min_value=0.01, max_value=1.0, value=0.1)
+        elif selected_model_name == "Gradient Boosting Classifier":
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=20)
+            hyperparams['learning_rate'] = st.number_input("Learning Rate", min_value=0.01, max_value=1.0, value=0.1)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=2)
     else:
-        # Default values; not shown to user
+        # # Default values; not shown to user
         test_size = 0.2
         random_state = 42
+    
     # Show hyperparameters ONLY for neural network models
     show_nn = model in ["neuralnetwork for regression", "neuralnetwork for classification"]
     if show_nn:
         st.write("### Neural Network Hyperparameters (Adjust Before Training)")
+        test_size = st.slider("Test Size (as a fraction)", min_value=0.1, max_value=0.5, value=0.2, step=0.05)
+        random_state = st.number_input("Random State (for reproducibility)", min_value=0, max_value=1000, value=42)
         n_hidden_layers = st.number_input(
             "Number of Hidden Layers", min_value=1, max_value=5, value=2
         )
-        neurons_per_layer = st.number_input(
-            "Neurons per Hidden Layer", min_value=1, max_value=512, value=64
-        )
+        neurons_per_layer = []
+        if n_hidden_layers:
+            for i in range(n_hidden_layers):
+                st.write(f"Define parameters for Hidden Layer {i+1}:")
+                neurons = st.number_input(
+                    f"Neurons in Hidden Layer {i+1}", min_value=1, max_value=512, value=64, key=f"neurons_layer_{i+1}"
+                )
+                neurons_per_layer.append(neurons)
+                # You can store these values in a list or dictionary if needed
+
+
+        # neurons_per_layer = st.number_input(
+        #     "Neurons per Hidden Layer", min_value=1, max_value=512, value=64
+        # )
+        #Neurons for each layer
+
         learning_rate = st.number_input(
             "Learning Rate", min_value=0.0001, max_value=1.0, value=0.001, step=0.0001, format="%.4f"
         )
         epochs = st.number_input(
-            "Epochs", min_value=10, max_value=500, value=50, step=10
+            "Epochs", min_value=1, max_value=500, value=5, step=5
         )
         batch_size = st.number_input(
             "Batch Size", min_value=1, max_value=256, value=32
         )
+
     else:
         # Default values; not shown to user
         n_hidden_layers = None
@@ -457,10 +550,25 @@ if selected == 'Machine Learning':
         if target_column in st.session_state.new_df.columns:
             if model == "regression":
                 from machinelearningfunctions import regression_model
-                regression_model(st.session_state.new_df, target_column)
+                # regression_model(st.session_state.new_df, target_column)
+                regression_model(
+                    st.session_state.new_df,
+                    target_column,
+                    selected_model_name,
+                    hyperparams,
+                    test_size,
+                    random_state
+                )
+
+
             elif model == "classification":
                 from machinelearningfunctions import classification_model
-                classification_model(st.session_state.new_df, target_column)
+                # classification_model(st.session_state.new_df, target_column)
+                classification_model(st.session_state.new_df,
+                                     target_column,
+                                     selected_model_name,
+                                     hyperparams,test_size,
+                                     random_state)
             elif model == 'neuralnetwork for regression':
                 from machinelearningfunctions import neural_network
                 neural_network(
@@ -472,6 +580,7 @@ if selected == 'Machine Learning':
                     epochs=epochs,
                     batch_size=batch_size
                 )
+
             elif model == 'neuralnetwork for classification':
                 from machinelearningfunctions import neural_network_classifier
                 neural_network_classifier(
