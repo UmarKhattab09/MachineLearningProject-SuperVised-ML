@@ -73,8 +73,12 @@ def detect_outliers_zscore(df, column_name):
     data = df[column_name]
     z_scores = np.abs(stats.zscore(data))
     threshold = 3  # Define a threshold (e.g., 3 is commonly used)
-    outliers = [data[i] for i in range(len(data)) if z_scores[i] > threshold]
-    return outliers
+    try:
+        outliers = [data[i] for i in range(len(data)) if z_scores[i] > threshold]
+        return outliers
+    except Exception as e:
+        st.warning(f"Could not compute z-scores for column {column_name}: {e}")
+
 
 
 def remove_outliers(df, column_name, outliers):

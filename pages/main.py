@@ -322,49 +322,49 @@ else:
 
         st.dataframe(st.session_state.new_df)
 
-        st.subheader("Identify and Handle Outliers")
+        # st.subheader("Identify and Handle Outliers")
 
         
-        # Select numeric column for handling outliers
+        # # Select numeric column for handling outliers
         
 
 
-        selected_numeric_column = st.selectbox("Select Numeric Column for Outlier Handling:", new_df_numerical_columns)
-        st.write(selected_numeric_column)
+        # selected_numeric_column = st.selectbox("Select Numeric Column for Outlier Handling:", new_df_numerical_columns)
+        # st.write(selected_numeric_column)
 
         
-        # Display outliers in a box plot
-        fig, ax = plt.subplots()
-        ax = sns.boxplot(data=st.session_state.new_df, x=selected_numeric_column)
-        st.pyplot(fig)
+        # # Display outliers in a box plot
+        # fig, ax = plt.subplots()
+        # ax = sns.boxplot(data=st.session_state.new_df, x=selected_numeric_column)
+        # st.pyplot(fig)
 
 
-        outliers = preprocessing_function.detect_outliers_zscore(st.session_state.new_df, selected_numeric_column)
-        if outliers:
-            st.warning("Detected Outliers:")
-            st.write(outliers)
-        else:
-            st.info("No outliers detected using IQR.")
+        # outliers = preprocessing_function.detect_outliers_zscore(st.session_state.new_df, selected_numeric_column)
+        # if outliers:
+        #     st.warning("Detected Outliers:")
+        #     st.write(outliers)
+        # else:
+        #     st.info("No outliers detected using IQR.")
 
 
-        # Choose handling method
-        outlier_handling_method = st.selectbox("Select Outlier Handling Method:", ["Remove Outliers", "Transform Outliers"])
+        # # Choose handling method
+        # outlier_handling_method = st.selectbox("Select Outlier Handling Method:", ["Remove Outliers", "Transform Outliers"])
 
-        # Perform outlier handling based on the method chosen
-        if st.button("Apply Outlier Handling"):
-            if outlier_handling_method == "Remove Outliers":
+        # # Perform outlier handling based on the method chosen
+        # if st.button("Apply Outlier Handling"):
+        #     if outlier_handling_method == "Remove Outliers":
                
-                st.session_state.new_df = preprocessing_function.remove_outliers(st.session_state.new_df, selected_numeric_column,outliers)
-                st.success("Outliers removed successfully.")
+        #         st.session_state.new_df = preprocessing_function.remove_outliers(st.session_state.new_df, selected_numeric_column,outliers)
+        #         st.success("Outliers removed successfully.")
 
-            elif outlier_handling_method == "Transform Outliers":
-                # Provide options for transforming outliers (e.g., capping, log transformation)
-                # Update st.session_state.new_df after transforming outliers
-                st.session_state.new_df = preprocessing_function.transform_outliers(st.session_state.new_df, selected_numeric_column,outliers)
-                st.success("Outliers transformed successfully.")
+        #     elif outlier_handling_method == "Transform Outliers":
+        #         # Provide options for transforming outliers (e.g., capping, log transformation)
+        #         # Update st.session_state.new_df after transforming outliers
+        #         st.session_state.new_df = preprocessing_function.transform_outliers(st.session_state.new_df, selected_numeric_column,outliers)
+        #         st.success("Outliers transformed successfully.")
 
         # Show the updated dataset
-        st.dataframe(st.session_state.new_df)
+        # st.dataframe(st.session_state.new_df)
         
         if st.session_state.new_df is not None:
             # Convert the DataFrame to CSV
@@ -381,6 +381,8 @@ else:
 
 
 if selected == 'Machine Learning':
+    if "new_df" not in st.session_state:
+        st.write("### Please upload and preprocess a dataset first using the sidebar options.")
     num_columns, cat_columns, bool_columns = function.categorical_numerical(st.session_state.new_df)
 
     checked = st.checkbox("Drop Non-Numeric Columns Before Training Model")
@@ -424,7 +426,7 @@ if selected == 'Machine Learning':
         elif selected_model_name == "Decision Tree Regressor":
             # max_depth = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
             # min_samples_split = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
-            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=5)
             hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
 
         # RANDOM FOREST REGRESSOR HYPERPARAMETERS
@@ -432,9 +434,9 @@ if selected == 'Machine Learning':
             # n_estimators = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
             # max_depth = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
             # min_samples_split = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
-            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=20)
             hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1
-, max_value=100, value=10)
+, max_value=100, value=5)
             hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
 
         # rIDGE REGRESSOR HYPERPARAMETERS
@@ -451,9 +453,9 @@ if selected == 'Machine Learning':
             # n_estimators = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
             # learning_rate = st.number_input("Learning Rate", min_value=0.01, max_value=1.0, value=0.1)
             # max_depth = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
-            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=20)
             hyperparams['learning_rate'] = st.number_input("Learning Rate", min_value=0.01, max_value=1.0, value=0.1)
-            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=10)
+            hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=5)
 
     else:
         # Default values; not shown to user
@@ -478,7 +480,7 @@ if selected == 'Machine Learning':
             hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
         # RANDOM FOREST CLASSIFIER HYPERPARAMETERS
         elif selected_model_name == "Random Forest Classifier":
-            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=100)
+            hyperparams['n_estimators'] = st.number_input("Number of Estimators", min_value=10, max_value=500, value=20)
             hyperparams['max_depth'] = st.number_input("Max Depth", min_value=1, max_value=100, value=2)
             hyperparams['min_samples_split'] = st.number_input("Min Samples Split", min_value=2, max_value=100, value=2)
         #XGBOOST CLASSIFIER HYPERPARAMETERS
@@ -512,7 +514,7 @@ if selected == 'Machine Learning':
             for i in range(n_hidden_layers):
                 st.write(f"Define parameters for Hidden Layer {i+1}:")
                 neurons = st.number_input(
-                    f"Neurons in Hidden Layer {i+1}", min_value=1, max_value=512, value=64, key=f"neurons_layer_{i+1}"
+                    f"Neurons in Hidden Layer {i+1}", min_value=1, max_value=512, value=8, key=f"neurons_layer_{i+1}"
                 )
                 neurons_per_layer.append(neurons)
                 # You can store these values in a list or dictionary if needed
@@ -535,16 +537,37 @@ if selected == 'Machine Learning':
 
     else:
         # Default values; not shown to user
-        n_hidden_layers = None
         neurons_per_layer = None
         learning_rate = None
         epochs = None
         batch_size = None
 
+    # target_column = st.selectbox(
+    #     label="Enter the Target Column Name", 
+    #     options=st.session_state.new_df.columns
+    # )
     target_column = st.selectbox(
-        label="Enter the Target Column Name", 
-        options=st.session_state.new_df.columns
-    )
+    "Select the Target Column",
+    options=[None] + list(st.session_state.new_df.columns),
+    index=0  # make "None" selected by default
+)
+    from machinelearningfunctions import detect_class_imbalance
+    X, y, imbalance_detected = detect_class_imbalance(st.session_state.new_df, target_column)
+    
+    if imbalance_detected and y.nunique()<5:
+        st.warning("⚠️ Imbalanced dataset detected!")
+        method = st.selectbox("Class Imbalance Detected. Select Method to Handle Imbalance:", 
+            ["SMOTE Oversampling", "Random Undersampling","Random Oversampling", "No Handling"]
+        )
+        if st.button("Apply Class Imbalance Handling"):
+            from machinelearningfunctions import class_imbalance_handling
+            X_balanced, y_balanced = class_imbalance_handling(st.session_state.new_df,method=method,target_column=target_column)
+            if X_balanced is not None and y_balanced is not None:
+                st.session_state.new_df = X_balanced.join(y_balanced)
+                st.success("Class imbalance handling applied successfully.")
+                st.info("Review the modified dataset before training the model.")
+            else:
+                st.warning("Class imbalance handling was not applied.")
 
     if st.button("Train Model"):
         if target_column in st.session_state.new_df.columns:
@@ -563,12 +586,9 @@ if selected == 'Machine Learning':
 
             elif model == "classification":
                 from machinelearningfunctions import classification_model
-                # classification_model(st.session_state.new_df, target_column)
-                classification_model(st.session_state.new_df,
-                                     target_column,
-                                     selected_model_name,
-                                     hyperparams,test_size,
-                                     random_state)
+               
+                classification_model(X.join(y), target_column, selected_model_name, hyperparams, test_size, random_state)
+                
             elif model == 'neuralnetwork for regression':
                 from machinelearningfunctions import neural_network
                 neural_network(
