@@ -163,7 +163,8 @@ def shap_explain(model, X_train, X_test):
 
     try:
         st.subheader("🔹 SHAP Feature Importance")
-
+        X_train = X_train.select_dtypes(include=[np.number])
+        X_test = X_test.select_dtypes(include=[np.number])
         # --- Determine model type ---
         is_tree_based = any(
             keyword in type(model).__name__.lower()
@@ -172,6 +173,7 @@ def shap_explain(model, X_train, X_test):
         print(f"Model type detected: {'Tree-based' if is_tree_based else 'Other'}")
         # --- Choose appropriate explainer ---
         if is_tree_based:
+
             explainer = shap.TreeExplainer(model)
         else:
             explainer = shap.Explainer(model, X_train)
@@ -319,7 +321,7 @@ def class_imbalance_handling(df, method,target_column):
         sampler = SMOTE(random_state=42)
     elif method == "Random Oversampling":
         sampler = RandomOverSampler(random_state=42)
-    elif method == "Random UnderSampling":
+    elif method == "Random Undersampling":
         sampler = RandomUnderSampler(random_state=42)
     else:
         st.error("Invalid sampling method selected.")
@@ -561,8 +563,7 @@ def neural_network_classifier(df, target_column, n_hidden_layers=2, neurons_per_
                 runningloss += loss.item()
             avg_loss = runningloss / len(dataloader)
             train_loss.append(avg_loss)
-            if (epoch + 1) % 10 == 0:
-                st.write(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
+            st.write(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
             print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
 
         # Evaluate
