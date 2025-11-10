@@ -12,9 +12,6 @@ import home_page
 import base64
 import streamlit_authenticator as stauth
 
-
-import streamlit as st
-
 if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
     st.switch_page("loginsystem.py")  # Redirect back if not authenticated
 # # page config sets the text and icon that we see on the tab

@@ -101,6 +101,43 @@ pip install -r requirements.txt
 streamlit run loginsystem.py
 ```
 
+
+
+## Supabase configuration (.env)
+
+This project can optionally use Supabase for backend/storage features. To run the project with Supabase integration, create a `.env` file in the project root with your Supabase project URL and API key.
+
+Steps to get the values:
+
+1. Sign in at https://app.supabase.com and create a new project (or open an existing one).
+2. In your project, go to "Settings" -> "API".
+3. Copy the "Project URL" value and the "anon/public" API key (or a service_role key if your use-case requires elevated privileges — be careful with service_role keys).
+4. Create a `.env` file at the repository root and add the two variables:
+
+```properties
+# example `.env` (do NOT commit real keys to source control)
+PROJECT_URL=https://your-project-ref.supabase.co
+API_KEY=your-anon-or-service-role-key
+```
+
+Security notes:
+- Never commit your real `.env` file or secrets to version control. Add `.env` to your `.gitignore` if it isn't already ignored.
+- Prefer using the "anon/public" key for client-side use and the service_role key only on secure server-side components.
+- Rotate keys in the Supabase dashboard if you suspect they've been exposed.
+
+Optional: Install the Supabase CLI for local workflows:
+
+```bash
+# npm (requires Node.js)
+npm install -g supabase
+
+# login and link project (optional)
+supabase login
+supabase link --project-ref your-project-ref
+```
+
+Once `.env` is configured and you have activated your virtual environment, run the app as shown above.
+
 Note: Make sure you have Python 3.7+ installed on your system before starting the installation process.
 
 
@@ -139,6 +176,42 @@ Major dependencies include:
 - matplotlib
 
 For a complete list of dependencies, see `requirements.txt`
+
+
+## Supabase configuration (.env)
+
+This project can optionally use Supabase for backend/storage features. To run the project with Supabase integration, create a `.env` file in the project root with your Supabase project URL and API key.
+
+Steps to get the values:
+
+1. Sign in at https://app.supabase.com and create a new project (or open an existing one).
+2. In your project, go to "Settings" -> "API".
+3. Copy the "Project URL" value and the "anon/public" API key (or a service_role key if your use-case requires elevated privileges — be careful with service_role keys).
+4. Create a `.env` file at the repository root and add the two variables:
+
+```properties
+# example `.env` (do NOT commit real keys to source control)
+PROJECT_URL=https://your-project-ref.supabase.co
+API_KEY=your-anon-or-service-role-key
+```
+
+Security notes:
+- Never commit your real `.env` file or secrets to version control. Add `.env` to your `.gitignore` if it isn't already ignored.
+- Prefer using the "anon/public" key for client-side use and the service_role key only on secure server-side components.
+- Rotate keys in the Supabase dashboard if you suspect they've been exposed.
+
+Optional: Install the Supabase CLI for local workflows:
+
+```bash
+# npm (requires Node.js)
+npm install -g supabase
+
+# login and link project (optional)
+supabase login
+supabase link --project-ref your-project-ref
+```
+
+Once `.env` is configured and you have activated your virtual environment, run the app as shown above.
 
 ## Contributing
 
